@@ -8,23 +8,17 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Reloaded.Memory;
 using System.Xml.Serialization;
+using System.Windows.Forms;
 
 namespace PBB_Trainer
 {
     public partial class Form1 : Form
     {
-        [DllImport("kernel32.dll")]
-        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, UIntPtr nSize, out IntPtr lpNumberOfBytesWritten);
-
-        [DllImport("Kernel32.dll")]
-        static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, int nSize, out IntPtr lpNumberOfBytesRead);
-
         private bool attached = false;
         private Process proc;
 
         private int zcoordOff = 0x018CBDC0;
         private int xcoordOff = 0x00AA5088;
-
 
         private byte[] buffer;
 
@@ -45,21 +39,34 @@ namespace PBB_Trainer
         {
             try
             {
-                proc = Process.GetProcessesByName("PennysBigBreakaway").FirstOrDefault();
-
-                if (proc == null)
+                if (!attached)
                 {
-                    MessageBox.Show("PBB could not be found");
-                    return;
+                    proc = Process.GetProcessesByName("PennysBigBreakaway").FirstOrDefault();
+
+                    if (proc == null)
+                    {
+                        MessageBox.Show("PBB could not be found");
+                        return;
+                    }
+                    coordAddress = IntPtr.Add(proc.MainModule.BaseAddress, zcoordOff);
+
+                    gameMem = new ExternalMemory(proc);
+
+
+                    //should give address to pointer. Not value!
+
+                    attached = true;
+                    button1.Text = "Dettach";
+
+                    timer1.Start();
+                    
                 }
-                coordAddress = IntPtr.Add(proc.MainModule.BaseAddress, zcoordOff);
-
-                gameMem = new ExternalMemory(proc);
-
-
-                //should give address to pointer. Not value!
-
-                attached = true;
+                else
+                {
+                    attached = false;
+                    button1.Text = "Attach";
+                    timer1.Stop();
+                }
 
             }
             catch (Exception ex)
@@ -80,7 +87,6 @@ namespace PBB_Trainer
                 MessageBox.Show("Attach program to PBB first");
                 return;
             }
-
             gameMem.Read<nint>((nuint)coordAddress, out coordAdd);
             gameMem.Read<float>((nuint)coordAdd + 0x20, out savedPos[0]);
             gameMem.Read<float>((nuint)coordAdd + 0x24, out savedPos[1]);
@@ -98,6 +104,25 @@ namespace PBB_Trainer
             gameMem.Write<float>((nuint)coordAdd + 0x20, savedPos[0]);
             gameMem.Write<float>((nuint)coordAdd + 0x24, savedPos[1]);
             gameMem.Write<float>((nuint)coordAdd + 0x28, savedPos[2]);
+
+
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+        
+            float[] curPos = new float[3];
+            
+            gameMem.Read<nint>((nuint)coordAddress, out coordAdd);
+
+            gameMem.Read<float>((nuint)coordAdd + 0x20, out curPos[0]);   
+            gameMem.Read<float>((nuint)coordAdd + 0x24, out curPos[1]);  
+            gameMem.Read<float>((nuint)coordAdd + 0x28, out curPos[2]);
+                
+            label4.Text = "Current X Pos: " + curPos[0];
+            label5.Text = "Current Y Pos: " + curPos[1]; 
+            label6.Text = "Current Z Pos: " + curPos[2];
+
         }
     }
 }
