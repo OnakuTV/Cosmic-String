@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Reloaded.Memory.Sigscan;
 using Reloaded.Memory;
 using System.Xml.Serialization;
 
@@ -53,9 +52,7 @@ namespace PBB_Trainer
                     MessageBox.Show("PBB could not be found");
                     return;
                 }
-                MessageBox.Show(proc.MainModule.BaseAddress.ToString("X"));
                 coordAddress = IntPtr.Add(proc.MainModule.BaseAddress, zcoordOff);
-                MessageBox.Show(coordAddress.ToString("X"));
 
                 gameMem = new ExternalMemory(proc);
 
@@ -94,8 +91,6 @@ namespace PBB_Trainer
             label2.Text = "Saved Y Pos: " + savedPos[1];
 
             label3.Text = "Saved Z Pos: " + savedPos[2];
-
-            MessageBox.Show(savedPos[2].ToString());
         }
 
         private void button3_Click(object sender, EventArgs e)

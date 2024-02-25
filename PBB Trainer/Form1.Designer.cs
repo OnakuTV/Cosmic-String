@@ -109,7 +109,7 @@
             Controls.Add(button2);
             Controls.Add(button1);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Cosmic String";
             Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
