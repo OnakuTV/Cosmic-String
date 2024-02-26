@@ -148,8 +148,6 @@ namespace PBB_Trainer
         {
             try
             {
-
-
                 //if is in a level
                 float[] curPos = new float[3];
 
