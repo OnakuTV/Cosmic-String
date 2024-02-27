@@ -6,9 +6,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Reloaded.Memory;
 using System.Xml.Serialization;
 using System.Windows.Forms;
+using Reloaded.Memory;
+using SharpHook;
+using SharpHook.Native;
 
 namespace PBB_Trainer
 {
@@ -31,8 +33,12 @@ namespace PBB_Trainer
         nint camCoordAdd;
 
         private float[] savedPos = new float[3];
-        private float[] savedCamPos = new float[6];
-        private float[] savedRot = new float[4];
+        private float[] savedCamPos = new float[9];
+        private float[] savedRot = new float[12];
+        
+        private SimpleGlobalHook kbHook;
+        private Task task;
+        
         public Form1()
         {
             InitializeComponent();
@@ -65,12 +71,19 @@ namespace PBB_Trainer
 
                     timer1.Start();
                     
+                    kbHook = new SimpleGlobalHook(true);
+                    kbHook.KeyPressed += handle_keys;
+                    task = kbHook.RunAsync();
+                    
+                    
                 }
                 else
                 {
                     attached = false;
                     button1.Text = "Attach";
                     timer1.Stop();
+                    
+                    //kbHook.Dispose();
                 }
 
             }
@@ -110,6 +123,15 @@ namespace PBB_Trainer
             gameMem.Read<float>((nuint)camCoordAdd + 0x4A0, out savedRot[1]);
             gameMem.Read<float>((nuint)camCoordAdd + 0x4A4, out savedRot[2]);
             gameMem.Read<float>((nuint)camCoordAdd + 0x4A8, out savedRot[3]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x528, out savedRot[4]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x52C, out savedRot[5]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x530, out savedRot[6]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x534, out savedRot[7]);
+
+            gameMem.Read<float>((nuint)camCoordAdd + 0x80, out savedRot[8]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x84, out savedRot[9]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x88, out savedRot[10]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x8C, out savedRot[11]);
 
 
 
@@ -138,6 +160,15 @@ namespace PBB_Trainer
             gameMem.Write<float>((nuint)camCoordAdd + 0x4A0, savedRot[1]);
             gameMem.Write<float>((nuint)camCoordAdd + 0x4A4, savedRot[2]);
             gameMem.Write<float>((nuint)camCoordAdd + 0x4A8, savedRot[3]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x528, savedRot[4]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x52C, savedRot[5]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x530, savedRot[6]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x534, savedRot[7]);
+
+            gameMem.Write<float>((nuint)camCoordAdd + 0x80, savedRot[8]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x84, savedRot[9]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x88, savedRot[10]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x8C, savedRot[11]);
 
             gameMem.Write<float>((nuint)coordAdd + 0x20, savedPos[0]);
             gameMem.Write<float>((nuint)coordAdd + 0x24, savedPos[1]);
@@ -168,6 +199,22 @@ namespace PBB_Trainer
                 //Nothing happens here LOOOOL
             }
 
+        }
+      
+        private void handle_keys(Object sender, KeyboardHookEventArgs e)
+        {
+            if (attached)
+            {
+                KeyCode key = e.Data.KeyCode;
+                if(key == KeyCode.VcF9)
+                {
+                    button2_Click(sender, e);
+                }
+                else if(key == KeyCode.VcF10)
+                {
+                    button3_Click(sender,e);
+                }
+            }
         }
     }
 }
