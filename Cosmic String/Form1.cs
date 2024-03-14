@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using System.Windows.Forms;
 using Reloaded.Memory;
+using Reloaded.Memory.Sigscan;
 using SharpHook;
 using SharpHook.Native;
 
@@ -19,9 +20,9 @@ namespace PBB_Trainer
         private bool attached = false;
         private Process proc;
 
-        private int zcoordOff = 0x018CBDC0;
-        private int camOff = 0x18C3170;
-        private int timerOff = 0xAC57D0;
+        private int zcoordOff = 0x018CF680;
+        private int camOff = 0x02170148;
+        private int timerOff = 0xACA678;
 
         private IntPtr coordAddress;
         private IntPtr camAdd;
@@ -34,8 +35,10 @@ namespace PBB_Trainer
 
         private float[] savedPos = new float[3];
         private float[] savedCamPos = new float[9];
-        private float[] savedRot = new float[12];
-        
+        private float[] savedCamRot = new float[12];
+
+        float[] oldPos = {0,0,0};
+
         private SimpleGlobalHook kbHook;
         private Task task;
         
@@ -64,18 +67,14 @@ namespace PBB_Trainer
                     gameMem = new ExternalMemory(proc);
 
 
-                    //should give address to pointer. Not value!
-
                     attached = true;
-                    button1.Text = "Dettach";
+                    button1.Text = "Detach";
 
                     timer1.Start();
                     
                     kbHook = new SimpleGlobalHook(true);
                     kbHook.KeyPressed += handle_keys;
                     task = kbHook.RunAsync();
-                    
-                    
                 }
                 else
                 {
@@ -112,34 +111,19 @@ namespace PBB_Trainer
             gameMem.Read<float>((nuint)coordAdd + 0x24, out savedPos[1]);
             gameMem.Read<float>((nuint)coordAdd + 0x28, out savedPos[2]);
 
-            gameMem.Read<float>((nuint)camCoordAdd + 0x478, out savedCamPos[0]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x47C, out savedCamPos[1]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x480, out savedCamPos[2]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x484, out savedCamPos[3]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x488, out savedCamPos[4]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x48C, out savedCamPos[5]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x2E8, out savedCamPos[0]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x2EC, out savedCamPos[1]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x2F0, out savedCamPos[2]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x2F4, out savedCamPos[3]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x2F8, out savedCamPos[4]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x2FC, out savedCamPos[5]);
 
-            gameMem.Read<float>((nuint)camCoordAdd + 0x49C, out savedRot[0]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x4A0, out savedRot[1]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x4A4, out savedRot[2]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x4A8, out savedRot[3]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x528, out savedRot[4]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x52C, out savedRot[5]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x530, out savedRot[6]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x534, out savedRot[7]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x30C, out savedCamRot[0]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x310, out savedCamRot[1]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x314, out savedCamRot[2]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x318, out savedCamRot[3]);
+            gameMem.Read<float>((nuint)camCoordAdd + 0x31C, out savedCamRot[4]);
 
-            gameMem.Read<float>((nuint)camCoordAdd + 0x80, out savedRot[8]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x84, out savedRot[9]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x88, out savedRot[10]);
-            gameMem.Read<float>((nuint)camCoordAdd + 0x8C, out savedRot[11]);
-
-
-
-            label1.Text = "Saved X Pos: " + savedPos[0];
-
-            label2.Text = "Saved Y Pos: " + savedPos[1];
-
-            label3.Text = "Saved Z Pos: " + savedPos[2];
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -149,26 +133,18 @@ namespace PBB_Trainer
                 MessageBox.Show("Attach program to PBB first");
                 return;
             }
-            gameMem.Write<float>((nuint)camCoordAdd + 0x478, savedCamPos[0]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x47C, savedCamPos[1]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x480, savedCamPos[2]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x484, savedCamPos[3]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x488, savedCamPos[4]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x48C, savedCamPos[5]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x2E8, savedCamPos[0]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x2EC, savedCamPos[1]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x2F0, savedCamPos[2]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x2F4, savedCamPos[3]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x2F8, savedCamPos[4]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x2FC, savedCamPos[5]);
 
-            gameMem.Write<float>((nuint)camCoordAdd + 0x49C, savedRot[0]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x4A0, savedRot[1]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x4A4, savedRot[2]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x4A8, savedRot[3]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x528, savedRot[4]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x52C, savedRot[5]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x530, savedRot[6]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x534, savedRot[7]);
-
-            gameMem.Write<float>((nuint)camCoordAdd + 0x80, savedRot[8]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x84, savedRot[9]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x88, savedRot[10]);
-            gameMem.Write<float>((nuint)camCoordAdd + 0x8C, savedRot[11]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x30C, savedCamRot[0]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x310, savedCamRot[1]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x314, savedCamRot[2]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x318, savedCamRot[3]);
+            gameMem.Write<float>((nuint)camCoordAdd + 0x31C, savedCamRot[4]);
 
             gameMem.Write<float>((nuint)coordAdd + 0x20, savedPos[0]);
             gameMem.Write<float>((nuint)coordAdd + 0x24, savedPos[1]);
@@ -181,6 +157,7 @@ namespace PBB_Trainer
             {
                 //if is in a level
                 float[] curPos = new float[3];
+                float speedHorizontal;
 
                 gameMem.Read<nint>((nuint)coordAddress, out coordAdd);
                 gameMem.Read<nint>((nuint)camAdd, out camCoordAdd);
@@ -189,11 +166,24 @@ namespace PBB_Trainer
                 gameMem.Read<float>((nuint)coordAdd + 0x24, out curPos[1]);
                 gameMem.Read<float>((nuint)coordAdd + 0x28, out curPos[2]);
 
+                speedHorizontal = (float)Math.Round(Math.Sqrt(Math.Pow(curPos[0] - oldPos[0],2) + Math.Pow(curPos[2] - oldPos[2], 2)), 1);
+
                 gameMem.Write<double>((nuint)timerAdd, 999999);
 
-                label4.Text = "Current X Pos: " + curPos[0];
-                label5.Text = "Current Y Pos: " + curPos[1];
-                label6.Text = "Current Z Pos: " + curPos[2];
+                label1.Text = "Saved X Pos: " + savedPos[0];
+
+                label2.Text = "Saved Y Pos: " + savedPos[1];
+
+                label3.Text = "Saved Z Pos: " + savedPos[2];
+
+                label4.Text = "Current X Pos: " + Math.Round(curPos[0], 1);
+                label5.Text = "Current Y Pos: " + Math.Round(curPos[1], 1);
+                label6.Text = "Current Z Pos: " + Math.Round(curPos[2], 1);
+                label7.Text = "Speed: " + speedHorizontal;
+
+                oldPos[0] = curPos[0];
+                oldPos[1] = curPos[1];
+                oldPos[2] = curPos[2];
             }
             catch { 
                 //Nothing happens here LOOOOL

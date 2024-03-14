@@ -39,6 +39,7 @@
             label5 = new Label();
             label6 = new Label();
             timer1 = new System.Windows.Forms.Timer(components);
+            label7 = new Label();
             SuspendLayout();
             // 
             // button1
@@ -137,11 +138,22 @@
             timer1.Interval = 50;
             timer1.Tick += timer1_Tick;
             // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
+            label7.Location = new Point(447, 250);
+            label7.Name = "label7";
+            label7.Size = new Size(97, 32);
+            label7.TabIndex = 9;
+            label7.Text = "Speed: ";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label7);
             Controls.Add(label4);
             Controls.Add(label5);
             Controls.Add(label6);
@@ -170,5 +182,6 @@
         private Label label5;
         private Label label6;
         private System.Windows.Forms.Timer timer1;
+        private Label label7;
     }
 }
